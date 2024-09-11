@@ -30,13 +30,3 @@ def predict(X, beta):
     X = np.concatenate((ones, X), axis=1)
 
     return np.dot(X, beta)
-
-def mse(y_test, y_pred):
-    """
-    Mean squared error
-    :param y_test: True target values
-    :param y_pred: Predicted target values
-    :return: Mean squared error
-    """
-
-    return np.mean((y_test - y_pred) ** 2)
