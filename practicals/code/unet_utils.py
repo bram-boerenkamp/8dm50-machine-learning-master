@@ -4,6 +4,7 @@ from sklearn.feature_extraction.image import extract_patches_2d
 import gryds
 import time
 import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 
 def load_data(impaths_all, test=False):
@@ -131,3 +132,35 @@ def datagenerator(images, segmentations, patch_size, patches_per_im, batch_size)
             y_batch = y[idx * batch_size:(idx + 1) * batch_size]
             yield x_batch, y_batch
 
+# Create a very simple datagenerator
+def brightnessaugmentation(images, segmentations, patch_size, patches_per_im, batch_size):
+    """
+    Simple data-generator to feed patches in batches to the network.
+    To extract different patches each epoch, steps_per_epoch in fit_generator should be equal to nr_batches.
+
+    :param images: Input images
+    :param segmentations: Corresponding segmentations
+    :param patch_size: Desired patch size
+    :param patches_per_im: Amount of patches to extract per image
+    :param batch_size: Number of patches per batch
+    :return: Batch of patches to feed to the model
+    """
+    # Total number of patches generated per epoch
+    total_patches = len(images) * patches_per_im
+    # Amount of batches in one epoch
+    nr_batches = int(np.ceil(total_patches / batch_size))
+
+    datagen = ImageDataGenerator(brightness_range=[0.8, 1.2])
+
+    while True:
+        # Each epoch extract different patches from the training images
+        x, y = extract_patches(images, segmentations, patch_size, patches_per_im, seed=np.random.randint(0, 500))
+
+        # Feed data in batches to the network
+        for idx in range(nr_batches):
+            x_batch = x[idx * batch_size:(idx + 1) * batch_size]
+            y_batch = y[idx * batch_size:(idx + 1) * batch_size]
+            
+            x_batch = datagen.flow(x_batch, batch_size=batch_size, shuffle=False).next()
+
+            yield x_batch, y_batch
